@@ -22,6 +22,7 @@ io.on("connection", (socket) => {
   socket.on("enter_room", (roomName, done) => {
     socket.join(roomName);
     done();
+    socket.to(roomName).emit("welcome");
   });
 });
 // const wss = new Websocket.Server({ server });
