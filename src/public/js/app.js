@@ -9,6 +9,7 @@ room.hidden = true;
 let roomName;
 
 function addMessage(message) {
+  // 송수신 메세지 클라이언트에 표시
   const ul = room.querySelector("ul");
   const li = document.createElement("li");
   li.innerText = message;
@@ -17,21 +18,29 @@ function addMessage(message) {
 
 function handleMessageSubmit(event) {
   event.preventDefault();
-  const input = room.querySelector("input");
+  const input = room.querySelector("#msg input");
   const value = input.value;
   socket.emit("new_message", input.value, roomName, () => {
-    addMessage(`You: ${value}`);
+    addMessage(`You: ${value}`); // 보낸 메세지 클라이언트에 표시 //input.value로는 메세지가 안 나타남 string으로 넣기
   });
   input.value = "";
 }
 
-function showRoom(msg) {
+function handleNicknameSubmit(event) {
+  event.preventDefault();
+  const input = room.querySelector("#name input");
+  socket.emit("nickname", input.value);
+}
+
+function showRoom() {
   welcome.hidden = true;
   room.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
-  const form = room.querySelector("form");
-  form.addEventListener("submit", handleMessageSubmit);
+  const msgForm = room.querySelector("#msg");
+  const nameForm = room.querySelector("#name");
+  msgForm.addEventListener("submit", handleMessageSubmit); //메세지 보내기
+  nameForm.addEventListener("submit", handleNicknameSubmit); //닉네임 설정하기
 }
 
 function handleRoomSubmit(event) {
@@ -44,12 +53,12 @@ function handleRoomSubmit(event) {
 
 form.addEventListener("submit", handleRoomSubmit);
 
-socket.on("welcome", () => {
-  addMessage("Someone joined!");
+socket.on("welcome", (user) => {
+  addMessage(`${user} joined!`); // 입장 알림
 });
 
-socket.on("bye", () => {
-  addMessage("Someone left!");
+socket.on("bye", (user) => {
+  addMessage(`${user} left!`); //퇴장 알림
 });
 
-socket.on("new_message", addMessage);
+socket.on("new_message", addMessage); //메세지 받기 // (msg) => {addMessage(msg)}와 같음
