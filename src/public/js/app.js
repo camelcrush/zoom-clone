@@ -62,3 +62,17 @@ socket.on("bye", (user) => {
 });
 
 socket.on("new_message", addMessage); //메세지 받기 // (msg) => {addMessage(msg)}와 같음
+
+socket.on("room_change", (rooms) => {
+  // 활성화된 룸 리스트 보여주기
+  const roomList = welcome.querySelector("ul");
+  roomList.innerHTML = "";
+  if (rooms.length === 0) {
+    return;
+  }
+  rooms.forEach((room) => {
+    const li = document.createElement("li");
+    li.innerText = room;
+    roomList.append(li);
+  });
+});
