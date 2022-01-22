@@ -1,5 +1,6 @@
 import http from "http";
 import { Server } from "socket.io";
+import { instrument } from "@socket.io/admin-ui";
 import express from "express";
 
 const app = express();
@@ -13,7 +14,16 @@ app.get("/*", (req, res) => res.redirect("/"));
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
 const httpServer = http.createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io"], // 서버에 연결 시 /admin 붙이기 ex) http://localhost:3000/admin
+    credentials: true,
+  },
+});
+
+instrument(io, {
+  auth: false,
+});
 
 function publicRooms() {
   const {

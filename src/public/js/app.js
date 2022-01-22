@@ -55,13 +55,13 @@ form.addEventListener("submit", handleRoomSubmit);
 
 socket.on("welcome", (user, userCount) => {
   const h3 = room.querySelector("h3");
-  h3.innerText = `Room ${roomName} (${userCount})`;
+  h3.innerText = `Room ${roomName} (${userCount})`; // 유저카운트 갱신
   addMessage(`${user} joined!`); // 입장 알림
 });
 
 socket.on("bye", (user, userCount) => {
   const h3 = room.querySelector("h3");
-  h3.innerText = `Room ${roomName} (${userCount})`;
+  h3.innerText = `Room ${roomName} (${userCount})`; // 유저카운트 갱신
   addMessage(`${user} left!`); //퇴장 알림
 });
 
