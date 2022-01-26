@@ -95,17 +95,18 @@ camerasSelect.addEventListener("input", handleCameraChange);
 const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
-async function startMedia() {
+async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
-  await getMedia();
+  await getMedia(); // Connection 만들기 전에 미디어 불러오기
   makeConnection();
 }
 
-function handleWelcomeSubmit(event) {
+async function handleWelcomeSubmit(event) {
   event.preventDefault();
   const input = welcomeForm.querySelector("input");
-  socket.emit("join_room", input.value, startMedia);
+  await initCall(); // 룸에 들어가기 전에 Connection 생성 : 속도가 너무 빨라 비동기방식으로 설정
+  socket.emit("join_room", input.value);
   roomName = input.value;
   input.value = "";
 }
@@ -115,16 +116,23 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 // Socket Code
 
 socket.on("welcome", async () => {
-  // Peer A에서 실행되는 코드
+  // Peer A에서 실행되는 코드: 상대방이 들어와야 실행됨
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
   console.log("sent the offer");
   socket.emit("offer", offer, roomName);
 });
 
-socket.on("offer", (offer) => {
+socket.on("offer", async (offer) => {
   // Peer B에서 실행되는 코드
-  console.log(offer);
+  myPeerConnection.setRemoteDescription(offer); // 받은 offer로 Remote Description 설정
+  const answer = await myPeerConnection.createAnswer(); // answer 생성
+  myPeerConnection.setLocalDescription(answer); // 생성한 answer로 Local Description 설정
+  socket.emit("answer", answer, roomName); // answer 보내기
+});
+
+socket.on("answer", (answer) => {
+  myPeerConnection.setRemoteDescription(answer); // Peer A: 서버로부터 asnwer 받고 Remote Description 설정
 });
 
 // RTC Code
