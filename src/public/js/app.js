@@ -96,6 +96,7 @@ const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
 async function initCall() {
+  // 방에 입장할 때 미디어 부르기, Peer간 connection 만들기
   welcome.hidden = true;
   call.hidden = false;
   await getMedia(); // Connection 만들기 전에 미디어 불러오기
@@ -125,21 +126,41 @@ socket.on("welcome", async () => {
 
 socket.on("offer", async (offer) => {
   // Peer B에서 실행되는 코드
+  console.log("received the offer");
   myPeerConnection.setRemoteDescription(offer); // 받은 offer로 Remote Description 설정
   const answer = await myPeerConnection.createAnswer(); // answer 생성
   myPeerConnection.setLocalDescription(answer); // 생성한 answer로 Local Description 설정
   socket.emit("answer", answer, roomName); // answer 보내기
+  console.log("sent the answer");
 });
 
 socket.on("answer", (answer) => {
+  console.log("received the answer");
   myPeerConnection.setRemoteDescription(answer); // Peer A: 서버로부터 asnwer 받고 Remote Description 설정
+});
+
+socket.on("ice", (ice) => {
+  console.log("received candidate");
+  myPeerConnection.addIceCandidate(ice); // icecandidate를 받아 추가하기
 });
 
 // RTC Code
 
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection(); // RTCPeer Connection 만들기
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream)); // peerConnection에 트랙, 스트림 정보 추가하기
+}
+
+function handleIce(data) {
+  console.log("sent candidate");
+  socket.emit("ice", data.candidate, roomName); // 서버로 icecandidate 보내기
+}
+
+function handleAddStream(data) {
+  const peerFace = document.getElementById("peerFace");
+  peerFace.srcObject = data.stream;
 }
