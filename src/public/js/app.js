@@ -13,6 +13,7 @@ let muted = false;
 let cameraOff = false;
 let roomName;
 let myPeerConnection;
+let myDataChannel;
 
 async function getCameras() {
   try {
@@ -125,6 +126,9 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 socket.on("welcome", async () => {
   // Peer A에서 실행되는 코드: 상대방이 들어와야 실행됨
+  myDataChannel = myPeerConnection.createDataChannel("chat"); // peerconnection에 데이터 채널 만들기
+  myDataChannel.addEventListener("message", (event) => console.log(event.data));
+  console.log("made data channel");
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
   console.log("sent the offer");
@@ -133,6 +137,12 @@ socket.on("welcome", async () => {
 
 socket.on("offer", async (offer) => {
   // Peer B에서 실행되는 코드
+  myPeerConnection.addEventListener("datachannel", (event) => {
+    myDataChannel = event.channel; // datachannel 추가하기
+    myDataChannel.addEventListener("message", (event) =>
+      console.log(event.data)
+    );
+  });
   console.log("received the offer");
   myPeerConnection.setRemoteDescription(offer); // 받은 offer로 Remote Description 설정
   const answer = await myPeerConnection.createAnswer(); // answer 생성
@@ -156,6 +166,7 @@ socket.on("ice", (ice) => {
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection({
     iceServers: [
+      // Stun : 접속하면 공용 IP 주소를 알려주는 서버, 테스트용
       {
         urls: [
           "stun:stun.l.google.com:19302",
