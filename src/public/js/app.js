@@ -84,6 +84,13 @@ function handleCameraClick() {
 
 async function handleCameraChange() {
   await getMedia(camerasSelect.value); // 미디어 다시 부르기
+  if (myPeerConnection) {
+    const videoTrack = myStream.getVideoTracks()[0]; // 바뀐 트랙 불러오기
+    const videoSender = myPeerConnection
+      .getSenders() // 스트림에 보낸 트랙을 컨트롤할 수 있는 함수
+      .find((sender) => sender.track.kind === "video");
+    videoSender.replaceTack(videoTrack); // 비디오인 트랙을 찾아 바뀐 트랙으로 대체
+  }
 }
 
 muteBtn.addEventListener("click", handleMuteClick);
@@ -148,8 +155,8 @@ socket.on("ice", (ice) => {
 
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection(); // RTCPeer Connection 만들기
-  myPeerConnection.addEventListener("icecandidate", handleIce);
-  myPeerConnection.addEventListener("addstream", handleAddStream);
+  myPeerConnection.addEventListener("icecandidate", handleIce); // icecandidate 생성: icecandidate는 peer가 갖고 있는 소통 방법, peer간에 주고 받아야 함
+  myPeerConnection.addEventListener("addstream", handleAddStream); // stream 생성
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream)); // peerConnection에 트랙, 스트림 정보 추가하기
@@ -162,5 +169,5 @@ function handleIce(data) {
 
 function handleAddStream(data) {
   const peerFace = document.getElementById("peerFace");
-  peerFace.srcObject = data.stream;
+  peerFace.srcObject = data.stream; // video 태그에 src로 데이타 스트림 추가
 }
