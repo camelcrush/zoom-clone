@@ -154,7 +154,19 @@ socket.on("ice", (ice) => {
 // RTC Code
 
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection(); // RTCPeer Connection 만들기
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302",
+        ],
+      },
+    ],
+  }); // RTCPeer Connection 만들기
   myPeerConnection.addEventListener("icecandidate", handleIce); // icecandidate 생성: icecandidate는 peer가 갖고 있는 소통 방법, peer간에 주고 받아야 함
   myPeerConnection.addEventListener("addstream", handleAddStream); // stream 생성
   myStream
